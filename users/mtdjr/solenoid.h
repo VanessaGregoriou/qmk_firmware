@@ -2,7 +2,7 @@
 #define SOLENOID_H
 
 #include <timer.h>
-#include "pincontrol.h"
+
 
 #define SOLENOID_DEFAULT_DWELL 12
 #define SOLENOID_MAX_DWELL 100
@@ -10,7 +10,10 @@
 #ifndef SOLENOID_ACTIVE
   #define SOLENOID_ACTIVE false
 #endif
-//#define SOLENOID_PIN F6
+#ifndef SOLENOID_PIN
+  #define SOLENOID_PIN F6
+#endif
+
 
 bool solenoid_enabled = SOLENOID_ACTIVE;
 bool solenoid_on = false;
@@ -41,7 +44,7 @@ void solenoid_toggle(void) {
 }
 
 void solenoid_stop(void) {
-  digitalWrite(SOLENOID_PIN, PinLevelLow);
+  writePinLow(SOLENOID_PIN);
   solenoid_on = false;
   solenoid_buzzing = false;
 }
@@ -55,7 +58,7 @@ void solenoid_fire(void) {
   solenoid_on = true;
   solenoid_buzzing = true;
   solenoid_start = timer_read();
-  digitalWrite(SOLENOID_PIN, PinLevelHigh);
+  writePinHigh(SOLENOID_PIN);
 }
 
 void solenoid_check(void) {
@@ -76,28 +79,20 @@ void solenoid_check(void) {
     if (elapsed / SOLENOID_MIN_DWELL % 2 == 0){
       if (!solenoid_buzzing) {
         solenoid_buzzing = true;
-        digitalWrite(SOLENOID_PIN, PinLevelHigh);
+        writePinHigh(SOLENOID_PIN);
       }
     }
     else {
       if (solenoid_buzzing) {
         solenoid_buzzing = false;
-        digitalWrite(SOLENOID_PIN, PinLevelLow);
+        writePinLow(SOLENOID_PIN);
       }
     }
   }
 }
 
 void solenoid_setup(void) {
-  pinMode(SOLENOID_PIN, PinDirectionOutput);
-}
-
-void matrix_init_user(void) {
-  solenoid_setup();
-}
-
-void matrix_scan_user(void) {
-  solenoid_check();
+  setPinOutput(SOLENOID_PIN);
 }
 
 #endif
